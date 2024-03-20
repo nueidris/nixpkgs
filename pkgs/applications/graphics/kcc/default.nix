@@ -1,39 +1,41 @@
 { lib
-, mkDerivationWith
+, fetchFromGitHub
 , python3Packages
-, fetchPypi
+, pythonOlder
 , p7zip
-, archiveSupport ? true
 }:
 
-mkDerivationWith python3Packages.buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "kcc";
-  version = "5.5.1";
+  version = "5.7.0";
 
-  src = fetchPypi {
-    inherit version;
-    pname = "KindleComicConverter";
-    sha256 = "5dbee5dc5ee06a07316ae5ebaf21ffa1970094dbae5985ad735e2807ef112644";
+  disabled = pythonOlder "3.8";
+
+  src = fetchFromGitHub {
+    owner = "ciromattia";
+    repo = pname;
+    rev = "refs/tags/v${version}";
+    hash = "sha256-LUUKCSjVrqlnkMnnx1h0BUZ/0rO/ezlIwgXE9wq9uQQ=";
   };
 
-  propagatedBuildInputs = with python3Packages ; [
+  propagatedBuildInputs = with python3Packages; [
+    distro
+    mozjpeg-lossless-optimization
+    natsort
+    p7zip
     pillow
-    pyqt5
     psutil
+    pyside6
     python-slugify
     raven
+    requests
   ];
 
-  qtWrapperArgs = lib.optionals archiveSupport [ "--prefix" "PATH" ":" "${ lib.makeBinPath [ p7zip ] }" ];
-
-  postFixup = ''
-    wrapProgram $out/bin/kcc "''${qtWrapperArgs[@]}"
-  '';
-
   meta = with lib; {
-    description = "Python app to convert comic/manga files or folders to EPUB, Panel View MOBI or E-Ink optimized CBZ";
-    homepage = "https://kcc.iosphe.re";
+    changelog = "https://github.com/${src.owner}/${pname}/releases/tag/v${version}";
+    description = "A comic and manga converter for ebook readers.";
+    homepage = "https://github.com/${src.owner}/${pname}/";
     license = licenses.isc;
-    maintainers = with maintainers; [ dawidsowa ];
+    maintainers = with maintainers; [ dawidsowa nueidris ];
   };
 }
